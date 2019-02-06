@@ -115,8 +115,17 @@ class Plugin implements PluginInterface, EventSubscriberInterface {
    * Does all the stuff we want to do after CiviCRM has been installed.
    */
   protected function afterCivicrmInstallOrUpdate(Package $civicrm_package) {
+    if (preg_match('/(\d+\.\d+\.\d+)/', $civicrm_package->getPrettyVersion(), $matches)) {
+      $civicrm_version = $matches[1];
+    }
+    else {
+      // @todo Allow the user to give a version number.
+      throw new \RuntimeException("Unable to determine CiviCRM release version from {$civicrm_package->getPrettyVersion()}");
+    }
+
     $this->runBower();
-    $this->addExtraCivicrmFiles($civicrm_package->getPrettyVersion());
+    $this->addMissingCivicrmFiles($civicrm_version);
+    $this->downloadCivicrmExtensions();
     $this->syncWebAssetsToWebRoot();
   }
 
@@ -149,7 +158,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface {
    * @param string $civicrm_version
    *   The CiviCRM version.
    */
-  protected function addExtraCivicrmFiles($civicrm_version) {
+  protected function addMissingCivicrmFiles($civicrm_version) {
     $civicrm_core_path = $this->getCivicrmCorePath();
     $civicrm_archive_url = "https://download.civicrm.org/civicrm-{$civicrm_version}-drupal.tar.gz";
     $civicrm_archive_file = tempnam(sys_get_temp_dir(), "drupal-civicrm-archive-");
@@ -194,12 +203,63 @@ class Plugin implements PluginInterface, EventSubscriberInterface {
   }
 
   /**
+   * Download CiviCRM extensions based on configuration in 'extra'.
+   */
+  protected function downloadCivicrmExtensions() {
+    /** @var \Composer\Package\RootPackageInterface $package */
+    $package = $this->composer->getPackage();
+    $extra = $package->getExtra();
+
+    if (!empty($extra['civicrm']['extensions'])) {
+      foreach ($extra['civicrm']['extensions'] as $name => $url) {
+        $this->downloadCivicrmExtension($name, $url);
+      }
+    }
+  }
+
+  /**
+   * Download a single CiviCRM extension.
+   *
+   * @param string $name
+   *   The extension name.
+   * @param string $url
+   *   The URL to the zip archive.
+   */
+  protected function downloadCivicrmExtension($name, $url) {
+    $extension_archive_file = tempnam(sys_get_temp_dir(), "drupal-civicrm-extension-");
+    $this->output("<info>Downloading CiviCRM extension {$name} from {$url}...</info>");
+    file_put_contents($extension_archive_file, fopen($url, 'r'));
+
+    $extension_path = $this->getCivicrmCorePath() . '/tools/extensions';
+    $firstFile = NULL;
+
+    try {
+      $zip = new \ZipArchive();
+      $zip->open($extension_archive_file);
+      $firstFile = $zip->getNameIndex(0);
+      $zip->extractTo($extension_path);
+      $zip->close();
+    }
+    finally {
+      $this->filesystem->remove($extension_archive_file);
+    }
+
+    // Attempt to rename directory to extension name.
+    $parts = explode('/', $firstFile);
+    if (count($parts) > 1) {
+      $this->filesystem->rename("{$extension_path}/{$parts[0]}", "{$extension_path}/{$name}");
+    }
+  }
+
+  /**
    * Syncs web assets from CiviCRM to the web root.
    */
   protected function syncWebAssetsToWebRoot() {
     $source = $this->getCivicrmCorePath();
     $destination = './web/libraries/civicrm';
     $this->output("<info>Syncing CiviCRM web assets to /web/libraries/civicrm...</info>");
+
+    $this->util->removeDirectoryRecursively($destination);
 
     $this->util->mirrorFilesWithExtensions($source, $destination, static::ASSET_EXTENSIONS);
 
