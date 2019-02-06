@@ -244,10 +244,13 @@ class Plugin implements PluginInterface, EventSubscriberInterface {
       $this->filesystem->remove($extension_archive_file);
     }
 
-    // Attempt to rename directory to extension name.
-    $parts = explode('/', $firstFile);
-    if (count($parts) > 1) {
-      $this->filesystem->rename("{$extension_path}/{$parts[0]}", "{$extension_path}/{$name}");
+    // If the extension directory wasn't named like the extension name, then
+    // attempt to rename it.
+    if (!$this->filesystem->exists("{$extension_path}/{$name}")) {
+      $parts = explode('/', $firstFile);
+      if (count($parts) > 1) {
+        $this->filesystem->rename("{$extension_path}/{$parts[0]}", "{$extension_path}/{$name}");
+      }
     }
   }
 
