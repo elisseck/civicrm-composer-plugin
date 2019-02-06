@@ -1,6 +1,8 @@
 {
   "name": "roundearth/civicrm-composer-plugin",
+  "description": "A composer plugin to assist with installing CiviCRM.",
   "type": "composer-plugin",
+  "license": "GPL-2.0-or-later",
   "require": {
     "composer-plugin-api": "^1.1",
     "pear/archive_tar": "^1.4"
