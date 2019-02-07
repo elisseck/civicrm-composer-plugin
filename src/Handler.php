@@ -155,7 +155,11 @@ class Handler {
    */
   public function runBower() {
     $this->output("<info>Running bower for CiviCRM...</info>");
-    $bower = (new Process("bower install", $this->getCivicrmCorePath()))->mustRun();
+
+    $bower = new Process("bower install", $this->getCivicrmCorePath());
+    $bower->setTimeout(NULL);
+    $bower->mustRun();
+
     $this->output($bower->getOutput(), FALSE, IOInterface::VERBOSE);
   }
 
