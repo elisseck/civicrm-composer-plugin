@@ -187,7 +187,10 @@ class Handler {
       file_put_contents($civicrm_archive_file, fopen($civicrm_archive_url, 'r'));
 
       $this->output("<info>Extracting CiviCRM {$civicrm_version} release...</info>");
-      (new \Archive_Tar($civicrm_archive_file, "gz"))->extract($civicrm_extract_path);
+      $extract_successful = (new \Archive_Tar($civicrm_archive_file, "gz"))->extract($civicrm_extract_path);
+      if (!$extract_successful) {
+        throw new \RuntimeException("Unable to extract: $civicrm_archive_file");
+      }
 
       $this->output("<info>Copying missing files from CiviCRM release...</info>");
 
