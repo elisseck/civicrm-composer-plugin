@@ -7,13 +7,14 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Installer\PackageEvent;
 use Composer\Installer\PackageEvents;
 use Composer\IO\IOInterface;
+use Composer\Plugin\Capable;
 use Composer\Plugin\PluginInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Composer plugin to add support for CiviCRM.
  */
-class Plugin implements PluginInterface, EventSubscriberInterface {
+class Plugin implements PluginInterface, EventSubscriberInterface, Capable {
 
   /**
    * @var \Roundearth\CivicrmComposerPlugin\Handler
@@ -59,5 +60,15 @@ class Plugin implements PluginInterface, EventSubscriberInterface {
       $this->handler->afterCivicrmInstallOrUpdate($package);
     }
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCapabilities() {
+    return [
+      'Composer\Plugin\Capability\CommandProvider' => CommandProvider::class,
+    ];
+  }
+
 
 }

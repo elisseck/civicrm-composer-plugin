@@ -119,7 +119,7 @@ class Handler {
     /** @var \Composer\Package\Package $package */
     foreach ($local_repository->getPackages() as $package) {
       if ($package->getName() == 'civicrm/civicrm-core') {
-        return $package->getPrettyVersion();
+        return $package;
       }
     }
 
@@ -162,10 +162,13 @@ class Handler {
   /**
    * Adds all the missing files from the release tarball.
    *
-   * @param string $civicrm_version
+   * @param string|null $civicrm_version
    *   The CiviCRM version.
    */
-  public function addMissingCivicrmFiles($civicrm_version) {
+  public function addMissingCivicrmFiles($civicrm_version = NULL) {
+    if (!$civicrm_version) {
+      $civicrm_version = $this->getCivicrmCoreVersion();
+    }
     $civicrm_core_path = $this->getCivicrmCorePath();
     $civicrm_archive_url = "https://download.civicrm.org/civicrm-{$civicrm_version}-drupal.tar.gz";
     $civicrm_archive_file = tempnam(sys_get_temp_dir(), "drupal-civicrm-archive-");
@@ -232,7 +235,7 @@ class Handler {
    * @param string $url
    *   The URL to the zip archive.
    */
-  public function downloadCivicrmExtension($name, $url) {
+  protected function downloadCivicrmExtension($name, $url) {
     $extension_archive_file = tempnam(sys_get_temp_dir(), "drupal-civicrm-extension-");
     $this->output("<info>Downloading CiviCRM extension {$name} from {$url}...</info>");
     file_put_contents($extension_archive_file, fopen($url, 'r'));
