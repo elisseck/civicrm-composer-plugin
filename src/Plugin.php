@@ -90,9 +90,9 @@ class Plugin implements PluginInterface, EventSubscriberInterface {
     /** @var \Composer\DependencyResolver\Operation\InstallOperation|\Composer\DependencyResolver\Operation\UpdateOperation $operation */
     $operation = $event->getOperation();
 
-    $package = method_exists($operation, 'getPackage')
-        ? $operation->getPackage()
-        : $operation->getInitialPackage();
+    $package = method_exists($operation, 'getTargetPackage')
+        ? $operation->getTargetPackage()
+        : $operation->getPackage();
 
     $name = $package->getName();
 
