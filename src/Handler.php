@@ -90,6 +90,9 @@ class Handler {
   protected function getCivicrmCoreVersion(Package $package = NULL) {
     if (!$package) {
       $package = $this->getCivicrmCorePackage();
+      if (!$package) {
+        throw new \RuntimeException("The civicrm/civicrm-core package doesn't appear to be installed. Did you forget to run 'composer require civicrm/civicrm-core'?");
+      }
     }
 
     if (preg_match('/(\d+\.\d+\.\d+)/', $package->getPrettyVersion(), $matches)) {
@@ -97,7 +100,7 @@ class Handler {
     }
     else {
       // @todo Allow the user to give a version number.
-      throw new \RuntimeException("Unable to determine CiviCRM release version from {$civicrm_package->getPrettyVersion()}");
+      throw new \RuntimeException("Unable to determine CiviCRM release version from {$package->getPrettyVersion()}");
     }
 
     return $civicrm_version;
