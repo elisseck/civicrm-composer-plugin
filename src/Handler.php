@@ -79,6 +79,16 @@ class Handler {
     return "{$vendor_path}/civicrm/civicrm-core";
   }
 
+   /**
+   * Gets the path to the CiviCRM configuration directory.
+   *
+   * @return string
+   */
+  protected function getConfdirPath() {
+    $root_path = realpath(dirname(\Composer\Factory::getComposerFile()));
+    return "{$root_path}/web/sites/default";
+  }
+
   /**
    * Gets the CiviCRM core version.
    *
@@ -289,12 +299,14 @@ class Handler {
     $this->util->removeDirectoryRecursively("{$destination}/tests");
 
     $this->filesystem->mirror("{$source}/extern", "{$destination}/extern");
+    $this->filesystem->mirror("{$source}/packages/kcfinder", "{$destination}/packages/kcfinder");
     $this->filesystem->copy("{$source}/civicrm.config.php", "{$destination}/civicrm.config.php");
 
+    $confdirPath = $this->getConfdirPath();
     $settings_location_php = <<<EOF
 <?php
 
-define('CIVICRM_CONFDIR', '../../../sites');
+define('CIVICRM_CONFDIR', '{$confdirPath}');
 EOF;
     file_put_contents("{$destination}/settings_location.php", $settings_location_php);
   }
