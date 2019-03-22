@@ -33,7 +33,7 @@ composer.
 
 ## How does it work?
 
-This file that does all the real work:
+This is the file that does all the real work:
 
 [https://gitlab.com/roundearth/civicrm-composer-plugin/blob/master/src/Handler.php](https://gitlab.com/roundearth/civicrm-composer-plugin/blob/master/src/Handler.php)
 
