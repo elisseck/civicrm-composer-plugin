@@ -289,12 +289,13 @@ class Handler {
     $this->util->removeDirectoryRecursively("{$destination}/tests");
 
     $this->filesystem->mirror("{$source}/extern", "{$destination}/extern");
+    $this->filesystem->mirror("{$source}/packages/kcfinder", "{$destination}/packages/kcfinder");
     $this->filesystem->copy("{$source}/civicrm.config.php", "{$destination}/civicrm.config.php");
 
     $settings_location_php = <<<EOF
 <?php
 
-define('CIVICRM_CONFDIR', '../../../sites');
+define('CIVICRM_CONFDIR', dirname(dirname(dirname(__FILE__))) . '/sites');
 EOF;
     file_put_contents("{$destination}/settings_location.php", $settings_location_php);
   }
