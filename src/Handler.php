@@ -251,8 +251,16 @@ class Handler {
     file_put_contents($extension_archive_file, fopen($url, 'r'));
 
     $extension_path = $this->getCivicrmCorePath() . '/tools/extensions';
-    $firstFile = NULL;
+    $destination_path = "{$extension_path}/{$name}";
 
+    // Remove any old copies of the extension laying around.
+    if ($this->filesystem->exists($destination_path)) {
+      $this->util->removeDirectoryRecursively($destination_path);
+    }
+
+    // Extract the zip archive (recording the first file to figure out what
+    // path it extracts to).
+    $firstFile = NULL;
     try {
       $zip = new \ZipArchive();
       $zip->open($extension_archive_file);
@@ -266,10 +274,10 @@ class Handler {
 
     // If the extension directory wasn't named like the extension name, then
     // attempt to rename it.
-    if (!$this->filesystem->exists("{$extension_path}/{$name}")) {
+    if (!$this->filesystem->exists($destination_path)) {
       $parts = explode('/', $firstFile);
       if (count($parts) > 1) {
-        $this->filesystem->rename("{$extension_path}/{$parts[0]}", "{$extension_path}/{$name}");
+        $this->filesystem->rename("{$extension_path}/{$parts[0]}", $destination_path);
       }
     }
   }
