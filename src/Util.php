@@ -39,11 +39,10 @@ class Util {
     );
 
     foreach ($files as $fileinfo) {
-      $todo = ($fileinfo->isDir() ? 'rmdir' : 'unlink');
-      $todo($fileinfo->getRealPath());
+      $this->filesystem->remove($fileinfo->getRealPath());
     }
 
-    rmdir($dir);
+    $this->filesystem->remove($dir);
   }
 
   /**

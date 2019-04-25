@@ -187,7 +187,7 @@ class Handler {
 
     try {
       $this->output("<info>Downloading CiviCRM {$civicrm_version} release...</info>");
-      file_put_contents($civicrm_archive_file, fopen($civicrm_archive_url, 'r'));
+      $this->filesystem->dumpFile($civicrm_archive_file, fopen($civicrm_archive_url, 'r'));
 
       $this->output("<info>Extracting CiviCRM {$civicrm_version} release...</info>");
       $extract_successful = (new \Archive_Tar($civicrm_archive_file, "gz"))->extract($civicrm_extract_path);
@@ -200,7 +200,7 @@ class Handler {
       $this->filesystem->mirror("{$civicrm_extract_path}/civicrm/packages", "{$civicrm_core_path}/packages");
       $this->filesystem->mirror("{$civicrm_extract_path}/civicrm/sql", "{$civicrm_core_path}/sql");
 
-      file_put_contents("{$civicrm_core_path}/civicrm-version.php", str_replace('Drupal', 'Drupal8', file_get_contents("{$civicrm_extract_path}/civicrm/civicrm-version.php")));
+      $this->filesystem->dumpFile("{$civicrm_core_path}/civicrm-version.php", str_replace('Drupal', 'Drupal8', file_get_contents("{$civicrm_extract_path}/civicrm/civicrm-version.php")));
 
       $simple_copy_list = [
         'civicrm.config.php',
@@ -212,11 +212,11 @@ class Handler {
       }
     }
     finally {
-      if (file_exists($civicrm_archive_file)) {
-        unlink($civicrm_archive_file);
+      if ($this->filesystem->exists($civicrm_archive_file)) {
+        $this->filesystem->remove($civicrm_archive_file);
       }
 
-      if (file_exists($civicrm_extract_path)) {
+      if ($this->filesystem->exists($civicrm_extract_path)) {
         $this->util->removeDirectoryRecursively($civicrm_extract_path);
       }
     }
@@ -248,7 +248,7 @@ class Handler {
   protected function downloadCivicrmExtension($name, $url) {
     $extension_archive_file = tempnam(sys_get_temp_dir(), "drupal-civicrm-extension-");
     $this->output("<info>Downloading CiviCRM extension {$name} from {$url}...</info>");
-    file_put_contents($extension_archive_file, fopen($url, 'r'));
+    $this->filesystem->dumpFile($extension_archive_file, fopen($url, 'r'));
 
     $extension_path = $this->getCivicrmCorePath() . '/tools/extensions';
     $destination_path = "{$extension_path}/{$name}";
@@ -305,7 +305,7 @@ class Handler {
 
 define('CIVICRM_CONFDIR', dirname(dirname(dirname(__FILE__))) . '/sites');
 EOF;
-    file_put_contents("{$destination}/settings_location.php", $settings_location_php);
+    $this->filesystem->dumpFile("{$destination}/settings_location.php", $settings_location_php);
   }
 
 }

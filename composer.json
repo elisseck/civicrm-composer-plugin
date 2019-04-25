@@ -5,7 +5,9 @@
   "license": "GPL-2.0-or-later",
   "require": {
     "composer-plugin-api": "^1.1",
-    "pear/archive_tar": "^1.4"
+    "pear/archive_tar": "^1.4",
+    "symfony/filesystem": "^2.7 || ^3.0 || ^4.0",
+    "symfony/process": "^2.7 || ^3.0 || ^4.0"
   },
   "autoload": {
     "psr-4": {
