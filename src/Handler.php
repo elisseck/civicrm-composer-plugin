@@ -231,8 +231,14 @@ class Handler {
     $extra = $package->getExtra();
 
     if (!empty($extra['civicrm']['extensions'])) {
-      foreach ($extra['civicrm']['extensions'] as $name => $url) {
-        $this->downloadCivicrmExtension($name, $url);
+      foreach ($extra['civicrm']['extensions'] as $name => $info) {
+        if (!is_array($info)) {
+          $info = ['url' => $info];
+        }
+        if (!isset($info['patches']) || !is_array($info['patches'])) {
+          $info['patches'] = [];
+        }
+        $this->downloadCivicrmExtension($name, $info['url'], $info['patches']);
       }
     }
   }
@@ -244,8 +250,10 @@ class Handler {
    *   The extension name.
    * @param string $url
    *   The URL to the zip archive.
+   * @param string[] $patches
+   *   A list of patches to apply to the extension.
    */
-  protected function downloadCivicrmExtension($name, $url) {
+  protected function downloadCivicrmExtension($name, $url, array $patches) {
     $extension_archive_file = tempnam(sys_get_temp_dir(), "drupal-civicrm-extension-");
     $this->output("<info>Downloading CiviCRM extension {$name} from {$url}...</info>");
     $this->filesystem->dumpFile($extension_archive_file, fopen($url, 'r'));
@@ -278,6 +286,16 @@ class Handler {
       $parts = explode('/', $firstFile);
       if (count($parts) > 1) {
         $this->filesystem->rename("{$extension_path}/{$parts[0]}", $destination_path);
+      }
+    }
+
+    // If there are any patches for this extension.
+    if (!empty($patches)) {
+      foreach ($patches as $patch) {
+        $this->output("|-> Applying patch: $patch");
+        $process = new Process("patch -p1", $destination_path);
+        $process->setInput(file_get_contents($patch));
+        $process->mustRun();
       }
     }
   }
