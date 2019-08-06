@@ -159,7 +159,7 @@ class Handler {
   public function runBower() {
     $this->output("<info>Running bower for CiviCRM...</info>");
 
-    $bower = new Process("bower install", $this->getCivicrmCorePath());
+    $bower = new Process("node_modules/bower/bin/bower bower install", $this->getCivicrmCorePath());
     $bower->setTimeout(NULL);
     $bower->mustRun();
 
